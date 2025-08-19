@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>To-Do List</title>
+  <!-- Tailwind CDN (Netlify-safe) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 p-4">
+
+  <div class="bg-white/90 backdrop-blur-md shadow-2xl rounded-2xl w-full max-w-md p-6">
+    <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">✅ To-Do List</h1>
+
+    <!-- Input Row -->
+    <div class="flex gap-2 mb-4">
+      <input id="taskInput" type="text" placeholder="Enter a task and press Enter..."
+        class="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+      <button id="addBtn"
+        class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">Add</button>
+    </div>
+
+    <!-- Tasks -->
+    <ul id="taskList" class="space-y-2"></ul>
+
+    <!-- Footer actions -->
+    <div class="mt-4 flex justify-between text-sm">
+      <button id="clearDone" class="text-gray-600 hover:text-gray-900 underline">Clear completed</button>
+      <button id="clearAll" class="text-red-600 hover:text-red-800 underline">Clear all</button>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "tasks";
+    const taskInput = document.getElementById("taskInput");
+    const taskList = document.getElementById("taskList");
+    const addBtn = document.getElementById("addBtn");
+    const clearDoneBtn = document.getElementById("clearDone");
+    const clearAllBtn  = document.getElementById("clearAll");
+
+    // --- Helpers ---
+    function readStorage() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+
+        // Migration support: old data might be an array of strings like "✔ Buy milk"
+        if (Array.isArray(parsed)) {
+          return parsed
+            .map(item => {
+              if (typeof item === "string") {
+                const done = item.startsWith("✔ ");
+                const text = done ? item.slice(2) : item;
+                return { text, done };
+              }
+              // already in {text, done} form
+              if (item && typeof item.text === "string") {
+                return { text: item.text, done: !!item.done };
+              }
+              return null;
+            })
+            .filter(Boolean);
+        }
+        return [];
+      } catch {
+        return [];
+      }
+    }
+
+    function writeStorage(tasks) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+    }
+
+    function collectTasksFromDOM() {
+      const tasks = [];
+      taskList.querySelectorAll("li").forEach(li => {
+        const span = li.querySelector("span[data-role='text']");
+        const checkbox = li.querySelector("input[type='checkbox']");
+        if (span && checkbox) {
+          tasks.push({ text: span.textContent, done: checkbox.checked });
+        }
+      });
+      return tasks;
+    }
+
+    function saveTasks() {
+      writeStorage(collectTasksFromDOM());
+    }
+
+    // --- UI creation ---
+    function createTask(text, done = false) {
+      const li = document.createElement("li");
+      li.className = "flex items-center justify-between bg-gray-50 p-2 rounded-lg shadow";
+
+      const left = document.createElement("label");
+      left.className = "flex items-center gap-3 flex-1 cursor-pointer select-none";
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = !!done;
+      checkbox.className = "size-5";
+
+      const span = document.createElement("span");
+      span.textContent = text;
+      span.dataset.role = "text";
+      span.className = "flex-1";
+
+      // Apply completed style initially if needed
+      if (checkbox.checked) {
+        span.classList.add("line-through", "text-gray-400");
+      }
+
+      // Toggle styles when checkbox changes
+      checkbox.addEventListener("change", () => {
+        span.classList.toggle("line-through", checkbox.checked);
+        span.classList.toggle("text-gray-400", checkbox.checked);
+        saveTasks();
+      });
+
+      left.appendChild(checkbox);
+      left.appendChild(span);
+
+      const delBtn = document.createElement("button");
+      delBtn.textContent = "🗑";
+      delBtn.title = "Delete";
+      delBtn.className = "ml-3 text-red-500 hover:text-red-700 px-2";
+      delBtn.addEventListener("click", () => {
+        li.remove();
+        saveTasks();
+      });
+
+      li.appendChild(left);
+      li.appendChild(delBtn);
+      taskList.appendChild(li);
+    }
+
+    function addTask() {
+      const text = taskInput.value.trim();
+      if (!text) return;
+      createTask(text, false);
+      saveTasks();
+      taskInput.value = "";
+      taskInput.focus();
+    }
+
+    // --- Init ---
+    document.addEventListener("DOMContentLoaded", () => {
+      // Load & render tasks
+      const saved = readStorage();
+      saved.forEach(t => createTask(t.text, t.done));
+
+      // Add handlers
+      addBtn.addEventListener("click", addTask);
+      taskInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") addTask();
+      });
+
+      clearDoneBtn.addEventListener("click", () => {
+        taskList.querySelectorAll("li").forEach(li => {
+          const cb = li.querySelector("input[type='checkbox']");
+          if (cb && cb.checked) li.remove();
+        });
+        saveTasks();
+      });
+
+      clearAllBtn.addEventListener("click", () => {
+        taskList.innerHTML = "";
+        saveTasks();
+      });
+    });
+  </script>
+</body>
+</html>
