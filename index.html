@@ -4,15 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>To-Do List</title>
-  <!-- Tailwind CDN (Netlify-safe) -->
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 p-4">
 
   <div class="bg-white/90 backdrop-blur-md shadow-2xl rounded-2xl w-full max-w-md p-6">
     <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">✅ To-Do List</h1>
-
-    <!-- Input Row -->
     <div class="flex gap-2 mb-4">
       <input id="taskInput" type="text" placeholder="Enter a task and press Enter..."
         class="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
@@ -29,7 +26,6 @@
       <button id="clearAll" class="text-red-600 hover:text-red-800 underline">Clear all</button>
     </div>
   </div>
-
   <script>
     const STORAGE_KEY = "tasks";
     const taskInput = document.getElementById("taskInput");
@@ -37,8 +33,6 @@
     const addBtn = document.getElementById("addBtn");
     const clearDoneBtn = document.getElementById("clearDone");
     const clearAllBtn  = document.getElementById("clearAll");
-
-    // --- Helpers ---
     function readStorage() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
@@ -71,7 +65,6 @@
     function writeStorage(tasks) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
     }
-
     function collectTasksFromDOM() {
       const tasks = [];
       taskList.querySelectorAll("li").forEach(li => {
@@ -87,8 +80,6 @@
     function saveTasks() {
       writeStorage(collectTasksFromDOM());
     }
-
-    // --- UI creation ---
     function createTask(text, done = false) {
       const li = document.createElement("li");
       li.className = "flex items-center justify-between bg-gray-50 p-2 rounded-lg shadow";
@@ -143,14 +134,9 @@
       taskInput.value = "";
       taskInput.focus();
     }
-
-    // --- Init ---
     document.addEventListener("DOMContentLoaded", () => {
-      // Load & render tasks
       const saved = readStorage();
       saved.forEach(t => createTask(t.text, t.done));
-
-      // Add handlers
       addBtn.addEventListener("click", addTask);
       taskInput.addEventListener("keydown", (e) => {
         if (e.key === "Enter") addTask();
@@ -172,3 +158,4 @@
   </script>
 </body>
 </html>
+
