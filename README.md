@@ -23,9 +23,5 @@ Users can add, delete, and mark tasks as done. Tasks are stored in **localStorag
 4. Click ❌ to delete it.  
 5. Refreshing the page will keep your tasks saved.  
 ---
- ✨ Future Improvements
-- Add categories (Work, Study, Personal).  
-- Add deadlines with date picker.  
-- Add dark mode toggle.  
----
+
 Made with ❤️ by **Eaman Fatima**  
